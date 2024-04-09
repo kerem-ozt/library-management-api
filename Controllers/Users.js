@@ -1,25 +1,37 @@
 import UserService from '../Services/Users';
 
 class UserController {
-        
+
     static async getUsers(req, res) {
         try {
-            const users = await UserService.getUsers();
-            return res.status(200).json({ users });
-        } catch (error) {
+            const { page, limit, sortBy, sortOrder, filter } = req.query;
+    
+            const filterObj = filter ? JSON.parse(filter) : {};
+    
+            const result = await UserService.getUsers(
+                page ? parseInt(page) : 1, 
+                limit ? parseInt(limit) : 100, 
+                sortBy || 'createdAt', 
+                sortOrder || 'ASC', 
+                filterObj
+            );
+            
+            if (!result.type) return res.status(404).json({ message: result.message });
+            return res.status(200).json({ message: result.message, data: result.data});
+        } 
+        catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
-
+    
     static async getUser(req, res) {
         const { id } = req.params;
         try {
-            const user = await UserService.getUser(id);
-            if (user) {
-                return res.status(200).json({ user });
-            }
-            return res.status(404).send('User with the specified ID does not exists');
-        } catch (error) {
+            const result = await UserService.getUser(id);
+            if (!result.type) return res.status(404).json({ message: result.message });
+            return res.status(200).json({ message: result.message, data: result.data });
+        } 
+        catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
@@ -27,9 +39,11 @@ class UserController {
     static async createUser(req, res) {
         const newUser = req.body;
         try {
-            const createdUser = await UserService.createUser(newUser);
-            return res.status(201).json({ user: createdUser });
-        } catch (error) {
+            const result = await UserService.createUser(newUser);
+            if (!result.type) return res.status(400).json({ message: result.message });
+            return res.status(201).json({ message: result.message, data: result.data });
+        } 
+        catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
@@ -37,9 +51,11 @@ class UserController {
     static async borrowBook(req, res){
         const {book_id, user_id} = req.params;
         try {
-            const borrowedBook = await UserService.borrowBook(book_id, user_id);
-            return res.status(200).json({ borrowedBook });
-        } catch (error) {
+            const result = await UserService.borrowBook(book_id, user_id);
+            if (!result.type) return res.status(400).json({ message: result.message });
+            return res.status(201).json({ message: result.message, data: result.data });
+        } 
+        catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
@@ -48,9 +64,11 @@ class UserController {
         const {book_id, user_id} = req.params;
         const score = req.body.score;
         try {
-            const returnedBook = await UserService.returnBook(book_id, user_id, score);
-            return res.status(200).json({ returnedBook });
-        } catch (error) {
+            const result = await UserService.returnBook(book_id, user_id, score);
+            if (!result.type) return res.status(400).json({ message: result.message });
+            return res.status(201).json({ message: result.message, data: result.data });
+        } 
+        catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
