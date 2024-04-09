@@ -23,8 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     user_id: DataTypes.INTEGER,
     book_id: DataTypes.INTEGER,
     borrow_date: DataTypes.DATE,
-    return_date: DataTypes.DATE,
-    rating: DataTypes.INTEGER
+    return_date: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'Borrows',

@@ -1,30 +1,48 @@
 import db from '../src/models/index';
-import {Op} from 'sequelize';
+import LanguageHelper from '../Middleware/LanguageHelper';
 
 class BookService{
 
-    static async getBooks(){
-        return await db.Books.findAll();
+    static async getBooks(page = 1, limit = 100, sortBy = 'createdAt', sortOrder = 'ASC', filterObj = {}, language){
+        try{
+            let offset = (page - 1) * limit;
+
+            const books = await db.Books.findAll({
+                where: filterObj,
+                order: [[sortBy, sortOrder]],
+                offset: offset,
+                limit: limit
+            });
+
+            if(books.length === 0) return {type: false, data: [], message: LanguageHelper(language, 'get_book_not_found')};
+            return {type: true, data: books, message: LanguageHelper(language, 'get_book_success')};
+        }
+        catch(error){
+            return {type: false, message: error.message};
+        }
     }
 
-    static async getBook(id){
-        return await db.Books.findByPk(id);
+    static async getBook(id, language){
+        try{
+            const book = await db.Books.findByPk(id);
+
+            if(!book) return {type: false, data: [], message: LanguageHelper(language, 'get_book_not_found')};
+            return {type: true, data: book, message: LanguageHelper(language, 'get_book_success')};
+        }
+        catch(error){
+            return {type: false, message: error.message};
+        }
     }
 
-    static async createBook(newBook){
-        return await db.Books.create(newBook);
-    }
+    static async createBook(newBook, language){
+        try{
+            const book = await db.Books.create(newBook);
 
-    static async updateBook(id, updatedBook){
-        return await db.Books.update(updatedBook, {
-            where: {id: id}
-        });
-    }
-
-    static async deleteBook(id){
-        return await db.Books.destroy({
-            where: {id: id}
-        });
+            return {type: true, data: book, message: LanguageHelper(language, 'create_book_success')};
+        }
+        catch(error){
+            return {type: false, message: error.message};
+        }
     }
 
 }

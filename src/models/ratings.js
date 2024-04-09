@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
   Ratings.init({
     book_id: DataTypes.INTEGER,
     user_id: DataTypes.INTEGER,
-    rating: DataTypes.INTEGER,
+    rating: DataTypes.DECIMAL,
     rating_date: DataTypes.DATE
   }, {
     sequelize,
