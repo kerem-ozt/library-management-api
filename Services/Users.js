@@ -15,7 +15,7 @@ class UserService {
                 limit: limit
             });
     
-            if (users.length === 0) return { type: false, data: [], message: 'No users found' };
+            if (users.length === 0) return { type: false, data: [], message: LanguageHelper(language, 'get_user_not_found') };
             return { type: true, data: users, message: LanguageHelper(language, 'get_user_success') };
         }
         catch (error) {
@@ -23,56 +23,56 @@ class UserService {
         }
     }
 
-    static async getUser(id) {
+    static async getUser(id, language) {
         try {
             const user = await db.Users.findByPk(id);
 
-            if (!user) return { type: false, data: [], message: 'User not found' };
-            return { type: true, data: user, message: 'User successfully retrieved'};
+            if (!user) return { type: false, data: [], message: LanguageHelper(language, 'get_user_not_found') };
+            return { type: true, data: user, message: LanguageHelper(language, 'get_user_success')};
         } 
         catch (error) {
             return { type: false, message: error.message };
         }
     }
     
-    static async createUser(newUser) {
+    static async createUser(newUser, language) {
         try {
             const user = await db.Users.create(newUser);
 
-            return { type: true, data: user, message: 'User created successfully'};
+            return { type: true, data: user, message: LanguageHelper(language, 'create_user_success')};
         } 
         catch (error) {
             return { type: false, message: error.message };
         }
     }
     
-    static async borrowBook(book_id, user_id) {
+    static async borrowBook(book_id, user_id, language) {
         try {
             const book = await db.Books.findByPk(book_id);
-            if (!book) return { type: false, message: 'Book not found' };
+            if (!book) return { type: false, message: LanguageHelper(language, 'get_book_not_found') };
 
             const user = await db.Users.findByPk(user_id);
-            if (!user) return { type: false, message: 'User not found' };
+            if (!user) return { type: false, message: LanguageHelper(language, 'get_user_not_found') };
 
             let existingBorrow = await db.Borrows.findOne({ where: { book_id, user_id } });
-            if (existingBorrow) return { type: false, message: 'Book already borrowed' };
+            if (existingBorrow) return { type: false, message: LanguageHelper(language, 'borrow_book_fail') };
 
             const borrow = await db.Borrows.create({ book_id, user_id, borrow_date: moment(), return_date: moment().add(7, 'days')});
-            return { type: true, data: borrow, message: 'Book borrowed successfully'};
+            return { type: true, data: borrow, message: LanguageHelper(language, 'borrow_book_success')};
         } 
         catch (error) {
             return { type: false, message: error.message };
         }
     }
 
-    static async returnBook(book_id, user_id, score) {
+    static async returnBook(book_id, user_id, score, language) {
         const transaction = await db.sequelize.transaction();
         try {
             const book = await db.Books.findByPk(book_id);
-            if (!book) return { type: false, message: 'Book not found' };
+            if (!book) return { type: false, message: LanguageHelper(language, 'get_book_not_found') };
 
             const user = await db.Users.findByPk(user_id);
-            if (!user) return { type: false, message: 'User not found' };
+            if (!user) return { type: false, message: LanguageHelper(language, 'get_user_not_found') };
 
             await db.Ratings.create({ book_id, user_id, rating: score, rating_date: moment() }, { transaction });
     
@@ -82,7 +82,7 @@ class UserService {
             });
     
             if (destroyResult === 0) {
-                throw new Error('Borrow record not found');
+                throw new Error(LanguageHelper(language, 'get_borrow_not_found'));
             }
     
             const ratings = await db.Ratings.findAll({
@@ -97,7 +97,7 @@ class UserService {
     
             await transaction.commit();
     
-            return { type: true, message: 'Book returned successfully' };
+            return { type: true, message: LanguageHelper(language, 'return_book_success') };
         } catch (error) {
             await transaction.rollback();
             return { type: false, message: error.message };

@@ -28,7 +28,7 @@ class UserController {
     static async getUser(req, res) {
         const { id } = req.params;
         try {
-            const result = await UserService.getUser(id);
+            const result = await UserService.getUser(id, req.decoded.language);
             if (!result.type) return res.status(404).json({ message: result.message });
             return res.status(200).json({ message: result.message, data: result.data });
         } 
@@ -43,7 +43,7 @@ class UserController {
             const ValidationResult = UserValidation.createUser(newUser);
             if (!ValidationResult.type) return res.status(400).json({ type: false, message: ValidationResult.message });
 
-            const result = await UserService.createUser(newUser);
+            const result = await UserService.createUser(newUser, req.decoded.language);
             if (!result.type) return res.status(400).json({ message: result.message });
 
             return res.status(201).json({ message: result.message, data: result.data });
@@ -59,7 +59,7 @@ class UserController {
             const ValidationResult = UserValidation.borrowBook(book_id, user_id);
             if (!ValidationResult.type) return res.status(400).json({ type: false, message: ValidationResult.message });
 
-            const result = await UserService.borrowBook(book_id, user_id);
+            const result = await UserService.borrowBook(book_id, user_id, req.decoded.language);
             if (!result.type) return res.status(400).json({ message: result.message });
             
             return res.status(201).json({ message: result.message, data: result.data });
@@ -76,7 +76,7 @@ class UserController {
             const ValidationResult = UserValidation.returnBook(book_id, user_id, score);
             if (!ValidationResult.type) return res.status(400).json({ type: false, message: ValidationResult.message });
 
-            const result = await UserService.returnBook(book_id, user_id, score);
+            const result = await UserService.returnBook(book_id, user_id, score, req.decoded.language);
             if (!result.type) return res.status(400).json({ message: result.message });
             
             return res.status(201).json({ message: result.message, data: result.data });

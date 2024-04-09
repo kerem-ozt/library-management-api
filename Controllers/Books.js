@@ -14,7 +14,8 @@ class BookController {
                 limit ? parseInt(limit) : 100,
                 sortBy || 'createdAt',
                 sortOrder || 'ASC',
-                filterObj
+                filterObj,
+                req.decoded.language
             );
 
             if (!result.type) return res.status(404).json({ message: result.message });
@@ -29,7 +30,7 @@ class BookController {
     static async getBook(req, res) {
         const { id } = req.params;
         try {
-            const result = await BookService.getBook(id);
+            const result = await BookService.getBook(id, req.decoded.language);
             if (!result.type) return res.status(404).json({ message: result.message });
             return res.status(200).json({ message: result.message, data: result.data });
         } 
@@ -44,7 +45,7 @@ class BookController {
             const ValidationResult = BookValidation.createBook(newBook);
             if (!ValidationResult.type) return res.status(400).json({ type: false, message: ValidationResult.message });
 
-            const result = await BookService.createBook(newBook);
+            const result = await BookService.createBook(newBook, req.decoded.language);
             if (!result.type) return res.status(400).json({ message: result.message });
             
             return res.status(201).json({ message: result.message, data: result.data });
