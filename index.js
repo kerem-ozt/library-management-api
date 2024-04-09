@@ -14,7 +14,7 @@ import session from 'express-session';
 const app = express();
 const server = http.createServer(app);
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())

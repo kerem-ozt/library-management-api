@@ -2,7 +2,7 @@
 
 -- DROP DATABASE IF EXISTS library;
 
-CREATE DATABASE library2
+CREATE DATABASE library
     WITH
     OWNER = postgres
     ENCODING = 'UTF8'
