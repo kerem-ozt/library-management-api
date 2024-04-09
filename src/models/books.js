@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Books.init({
-    name: DataTypes.STRING,
+    title: DataTypes.STRING,
     average_rating: DataTypes.DECIMAL
   }, {
     sequelize,
