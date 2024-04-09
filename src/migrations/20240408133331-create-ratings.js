@@ -26,7 +26,7 @@ module.exports = {
         }
       },
       rating: {
-        type: Sequelize.INTEGER
+        type: Sequelize.DECIMAL
       },
       rating_date: {
         type: Sequelize.DATE
