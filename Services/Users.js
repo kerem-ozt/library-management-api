@@ -1,4 +1,5 @@
 import db from '../src/models/index';
+import moment from 'moment';
 
 class UserService {
     
@@ -46,18 +47,33 @@ class UserService {
     
     static async borrowBook(book_id, user_id) {
         try {
-            const borrow = await db.Borrows.create({ book_id, user_id });
+            const book = await db.Books.findByPk(book_id);
+            if (!book) return { type: false, message: 'Book not found' };
+
+            const user = await db.Users.findByPk(user_id);
+            if (!user) return { type: false, message: 'User not found' };
+
+            let existingBorrow = await db.Borrows.findOne({ where: { book_id, user_id } });
+            if (existingBorrow) return { type: false, message: 'Book already borrowed' };
+
+            const borrow = await db.Borrows.create({ book_id, user_id, borrow_date: moment(), return_date: moment().add(7, 'days')});
             return { type: true, data: borrow, message: 'Book borrowed successfully'};
         } 
         catch (error) {
             return { type: false, message: error.message };
         }
     }
-    
+
     static async returnBook(book_id, user_id, score) {
         const transaction = await db.sequelize.transaction();
         try {
-            await db.Ratings.create({ book_id, user_id, rating: score }, { transaction });
+            const book = await db.Books.findByPk(book_id);
+            if (!book) return { type: false, message: 'Book not found' };
+
+            const user = await db.Users.findByPk(user_id);
+            if (!user) return { type: false, message: 'User not found' };
+
+            await db.Ratings.create({ book_id, user_id, rating: score, rating_date: moment() }, { transaction });
     
             const destroyResult = await db.Borrows.destroy({
                 where: { book_id, user_id },
@@ -68,6 +84,16 @@ class UserService {
                 throw new Error('Borrow record not found');
             }
     
+            const ratings = await db.Ratings.findAll({
+                where: { book_id },
+                attributes: [[db.sequelize.fn('AVG', db.sequelize.col('rating')), 'average_rating']],
+                transaction
+            });
+    
+            const averageRating = ratings[0].get('average_rating');
+            
+            await db.Books.update({ average_rating: averageRating }, { where: { id: book_id }, transaction });
+    
             await transaction.commit();
     
             return { type: true, message: 'Book returned successfully' };
@@ -75,7 +101,7 @@ class UserService {
             await transaction.rollback();
             return { type: false, message: error.message };
         }
-    }
+    } 
 
 }
 

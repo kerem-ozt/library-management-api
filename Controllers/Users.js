@@ -1,4 +1,5 @@
 import UserService from '../Services/Users';
+import UserValidation from '../Validations/Users';
 
 class UserController {
 
@@ -39,8 +40,12 @@ class UserController {
     static async createUser(req, res) {
         const newUser = req.body;
         try {
+            const ValidationResult = UserValidation.createUser(newUser);
+            if (!ValidationResult.type) return res.status(400).json({ type: false, message: ValidationResult.message });
+
             const result = await UserService.createUser(newUser);
             if (!result.type) return res.status(400).json({ message: result.message });
+
             return res.status(201).json({ message: result.message, data: result.data });
         } 
         catch (error) {
@@ -51,8 +56,12 @@ class UserController {
     static async borrowBook(req, res){
         const {book_id, user_id} = req.params;
         try {
+            const ValidationResult = UserValidation.borrowBook(book_id, user_id);
+            if (!ValidationResult.type) return res.status(400).json({ type: false, message: ValidationResult.message });
+
             const result = await UserService.borrowBook(book_id, user_id);
             if (!result.type) return res.status(400).json({ message: result.message });
+            
             return res.status(201).json({ message: result.message, data: result.data });
         } 
         catch (error) {
@@ -64,8 +73,12 @@ class UserController {
         const {book_id, user_id} = req.params;
         const score = req.body.score;
         try {
+            const ValidationResult = UserValidation.returnBook(book_id, user_id, score);
+            if (!ValidationResult.type) return res.status(400).json({ type: false, message: ValidationResult.message });
+
             const result = await UserService.returnBook(book_id, user_id, score);
             if (!result.type) return res.status(400).json({ message: result.message });
+            
             return res.status(201).json({ message: result.message, data: result.data });
         } 
         catch (error) {

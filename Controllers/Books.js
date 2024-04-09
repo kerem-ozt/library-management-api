@@ -1,4 +1,5 @@
 import BookService from "../Services/Books";
+import BookValidation from "../Validations/Books";
 
 class BookController {
 
@@ -40,8 +41,12 @@ class BookController {
     static async createBook(req, res) {
         const newBook = req.body;
         try {
+            const ValidationResult = BookValidation.createBook(newBook);
+            if (!ValidationResult.type) return res.status(400).json({ type: false, message: ValidationResult.message });
+
             const result = await BookService.createBook(newBook);
             if (!result.type) return res.status(400).json({ message: result.message });
+            
             return res.status(201).json({ message: result.message, data: result.data });
         } 
         catch (error) {
