@@ -1,9 +1,10 @@
 import db from '../src/models/index';
 import moment from 'moment';
+import LanguageHelper from '../Middleware/LanguageHelper';
 
 class UserService {
     
-    static async getUsers(page = 1, limit = 100, sortBy = 'createdAt', sortOrder = 'ASC', filter = {}) {
+    static async getUsers(page = 1, limit = 100, sortBy = 'createdAt', sortOrder = 'ASC', filter = {}, language) {
         try {
             let offset = (page - 1) * limit;
 
@@ -15,7 +16,7 @@ class UserService {
             });
     
             if (users.length === 0) return { type: false, data: [], message: 'No users found' };
-            return { type: true, data: users, message: 'Users successfully retrieved' };
+            return { type: true, data: users, message: LanguageHelper(language, 'get_user_success') };
         }
         catch (error) {
             return { type: false, message: error.message };

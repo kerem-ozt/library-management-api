@@ -8,13 +8,13 @@ class UserController {
             const { page, limit, sortBy, sortOrder, filter } = req.query;
     
             const filterObj = filter ? JSON.parse(filter) : {};
-    
             const result = await UserService.getUsers(
                 page ? parseInt(page) : 1, 
                 limit ? parseInt(limit) : 100, 
                 sortBy || 'createdAt', 
                 sortOrder || 'ASC', 
-                filterObj
+                filterObj,
+                req.decoded.language
             );
             
             if (!result.type) return res.status(404).json({ message: result.message });
