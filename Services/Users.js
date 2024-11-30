@@ -1,5 +1,4 @@
 import db from '../src/models/index';
-import moment from 'moment';
 import LanguageHelper from '../Middleware/LanguageHelper';
 
 class UserService {

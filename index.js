@@ -2,32 +2,27 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
-import { sequelize } from './src/models';
-import db from './src/models/index';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import http from 'http';
 import routes from './Routes';
-import bodyParser from 'body-parser';
-import session from 'express-session';
+import helmet from 'helmet';
+import morgan from 'morgan';
 
 const app = express();
 const server = http.createServer(app);
 
 const port = process.env.PORT || 3000;
 
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
+app.use(helmet());
+app.use(morgan('dev'));
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  credentials: true,
+}))
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
-app.use(cookieParser());
-
-app.use(session({
-  secret: 'your-secret-key',
-  resave: false,
-  saveUninitialized: true,
-}));
 
 app.use((req, res, next) => {
   req.decoded = {
