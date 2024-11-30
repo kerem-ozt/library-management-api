@@ -179,22 +179,6 @@ class UserService {
             { transaction }
           );
     
-          const ratingData = await db.Ratings.findOne({
-            where: { book_id },
-            attributes: [
-              [db.Sequelize.fn('AVG', db.Sequelize.col('rating')), 'average_rating'],
-            ],
-            raw: true,
-            transaction,
-          });
-    
-          const averageRating = ratingData.average_rating;
-    
-          await db.Books.update(
-            { average_rating: averageRating },
-            { where: { id: book_id }, transaction }
-          );
-    
           await transaction.commit();
     
           return { type: true, message: LanguageHelper(language, 'return_book_success') };
