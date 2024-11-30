@@ -29,17 +29,11 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'Ratings',
   });
 
-
   Ratings.afterCreate(async (rating, options) => {
-    const ratingData = await Ratings.findOne({
+    const averageRating = await Ratings.aggregate('rating', 'AVG', {
       where: { book_id: rating.book_id },
-      attributes: [
-        [sequelize.fn('AVG', sequelize.col('rating')), 'average_rating'],
-      ],
-      raw: true,
     });
-
-    const averageRating = ratingData.average_rating;
+  
     await sequelize.models.Books.update(
       { average_rating: averageRating },
       { where: { id: rating.book_id } }
