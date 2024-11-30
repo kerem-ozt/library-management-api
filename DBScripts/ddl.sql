@@ -1,42 +1,68 @@
--- Database: library
+-- DROP SCHEMA public;
 
--- DROP DATABASE IF EXISTS library;
+CREATE SCHEMA public AUTHORIZATION postgres;
 
-CREATE DATABASE library
-    WITH
-    OWNER = postgres
-    ENCODING = 'UTF8'
-    LC_COLLATE = 'English_United Kingdom.1252'
-    LC_CTYPE = 'English_United Kingdom.1252'
-    TABLESPACE = pg_default
-    CONNECTION LIMIT = -1
-    IS_TEMPLATE = False;
-   
--- public."SequelizeMeta" definition
+COMMENT ON SCHEMA public IS 'standard public schema';
 
--- Drop table
+-- DROP SEQUENCE public."Books_id_seq";
 
--- DROP TABLE public."SequelizeMeta";
+CREATE SEQUENCE public."Books_id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
 
-CREATE TABLE public."SequelizeMeta" (
-	"name" varchar(255) NOT NULL,
-	CONSTRAINT "SequelizeMeta_pkey" PRIMARY KEY (name)
-);   
-   
--- public."Users" definition
+-- Permissions
 
--- Drop table
+ALTER SEQUENCE public."Books_id_seq" OWNER TO postgres;
+GRANT ALL ON SEQUENCE public."Books_id_seq" TO postgres;
 
--- DROP TABLE public."Users";
+-- DROP SEQUENCE public."Borrows_id_seq";
 
-CREATE TABLE public."Users" (
-	id serial4 NOT NULL,
-	"name" varchar(255) NULL,
-	"createdAt" timestamptz NOT NULL,
-	"updatedAt" timestamptz NOT NULL,
-	CONSTRAINT "Users_pkey" PRIMARY KEY (id)
-);   
+CREATE SEQUENCE public."Borrows_id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
 
+-- Permissions
+
+ALTER SEQUENCE public."Borrows_id_seq" OWNER TO postgres;
+GRANT ALL ON SEQUENCE public."Borrows_id_seq" TO postgres;
+
+-- DROP SEQUENCE public."Ratings_id_seq";
+
+CREATE SEQUENCE public."Ratings_id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public."Ratings_id_seq" OWNER TO postgres;
+GRANT ALL ON SEQUENCE public."Ratings_id_seq" TO postgres;
+
+-- DROP SEQUENCE public."Users_id_seq";
+
+CREATE SEQUENCE public."Users_id_seq"
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+
+-- Permissions
+
+ALTER SEQUENCE public."Users_id_seq" OWNER TO postgres;
+GRANT ALL ON SEQUENCE public."Users_id_seq" TO postgres;
 -- public."Books" definition
 
 -- Drop table
@@ -52,6 +78,49 @@ CREATE TABLE public."Books" (
 	CONSTRAINT "Books_pkey" PRIMARY KEY (id)
 );
 
+-- Permissions
+
+ALTER TABLE public."Books" OWNER TO postgres;
+GRANT ALL ON TABLE public."Books" TO postgres;
+
+
+-- public."SequelizeMeta" definition
+
+-- Drop table
+
+-- DROP TABLE public."SequelizeMeta";
+
+CREATE TABLE public."SequelizeMeta" (
+	"name" varchar(255) NOT NULL,
+	CONSTRAINT "SequelizeMeta_pkey" PRIMARY KEY (name)
+);
+
+-- Permissions
+
+ALTER TABLE public."SequelizeMeta" OWNER TO postgres;
+GRANT ALL ON TABLE public."SequelizeMeta" TO postgres;
+
+
+-- public."Users" definition
+
+-- Drop table
+
+-- DROP TABLE public."Users";
+
+CREATE TABLE public."Users" (
+	id serial4 NOT NULL,
+	"name" varchar(255) NULL,
+	"createdAt" timestamptz NOT NULL,
+	"updatedAt" timestamptz NOT NULL,
+	CONSTRAINT "Users_pkey" PRIMARY KEY (id)
+);
+
+-- Permissions
+
+ALTER TABLE public."Users" OWNER TO postgres;
+GRANT ALL ON TABLE public."Users" TO postgres;
+
+
 -- public."Borrows" definition
 
 -- Drop table
@@ -66,13 +135,16 @@ CREATE TABLE public."Borrows" (
 	return_date timestamptz NULL,
 	"createdAt" timestamptz NOT NULL,
 	"updatedAt" timestamptz NOT NULL,
-	CONSTRAINT "Borrows_pkey" PRIMARY KEY (id)
+	CONSTRAINT "Borrows_pkey" PRIMARY KEY (id),
+	CONSTRAINT "Borrows_book_id_fkey" FOREIGN KEY (book_id) REFERENCES public."Books"(id),
+	CONSTRAINT "Borrows_user_id_fkey" FOREIGN KEY (user_id) REFERENCES public."Users"(id)
 );
 
--- public."Borrows" foreign keys
+-- Permissions
 
-ALTER TABLE public."Borrows" ADD CONSTRAINT "Borrows_book_id_fkey" FOREIGN KEY (book_id) REFERENCES public."Books"(id);
-ALTER TABLE public."Borrows" ADD CONSTRAINT "Borrows_user_id_fkey" FOREIGN KEY (user_id) REFERENCES public."Users"(id);
+ALTER TABLE public."Borrows" OWNER TO postgres;
+GRANT ALL ON TABLE public."Borrows" TO postgres;
+
 
 -- public."Ratings" definition
 
@@ -88,10 +160,20 @@ CREATE TABLE public."Ratings" (
 	rating_date timestamptz NULL,
 	"createdAt" timestamptz NOT NULL,
 	"updatedAt" timestamptz NOT NULL,
-	CONSTRAINT "Ratings_pkey" PRIMARY KEY (id)
+	CONSTRAINT "Ratings_pkey" PRIMARY KEY (id),
+	CONSTRAINT "Ratings_book_id_fkey" FOREIGN KEY (book_id) REFERENCES public."Books"(id),
+	CONSTRAINT "Ratings_user_id_fkey" FOREIGN KEY (user_id) REFERENCES public."Users"(id)
 );
 
--- public."Ratings" foreign keys
+-- Permissions
 
-ALTER TABLE public."Ratings" ADD CONSTRAINT "Ratings_book_id_fkey" FOREIGN KEY (book_id) REFERENCES public."Books"(id);
-ALTER TABLE public."Ratings" ADD CONSTRAINT "Ratings_user_id_fkey" FOREIGN KEY (user_id) REFERENCES public."Users"(id);
+ALTER TABLE public."Ratings" OWNER TO postgres;
+GRANT ALL ON TABLE public."Ratings" TO postgres;
+
+
+
+
+-- Permissions
+
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO public;
