@@ -2,7 +2,7 @@
   "development": {
     "username": "postgres",
     "password": "postgres",
-    "database": "library3",
+    "database": "library",
     "host": "127.0.0.1",
     "dialect": "postgres",
     "directory": "./src"
