@@ -33,27 +33,39 @@ class UserService {
                 include: [
                   {
                     model: db.Books,
-                    attributes: ['name'],
+                    attributes: ['id', 'name'],
                   },
                 ],
               },
             ],
           });
-    
+      
           if (!user) {
             return { type: false, data: [], message: LanguageHelper(language, 'get_user_not_found') };
           }
-    
+      
+          const ratings = await db.Ratings.findAll({
+            where: {
+              user_id: id,
+            },
+            attributes: ['book_id', 'rating'],
+          });
+      
+          const ratingsMap = {};
+          ratings.forEach((rating) => {
+            ratingsMap[rating.book_id] = rating.rating;
+          });
+      
           const books = {
             past: [],
             present: [],
           };
-    
+      
           user.Borrows.forEach((borrow) => {
             if (borrow.return_date) {
               books.past.push({
                 name: borrow.Book.name,
-                userScore: borrow.rating,
+                userScore: ratingsMap[borrow.book_id] || null,
               });
             } else {
               books.present.push({
@@ -61,7 +73,7 @@ class UserService {
               });
             }
           });
-    
+      
           return {
             type: true,
             data: {
