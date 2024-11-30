@@ -18,7 +18,6 @@ fs.readdir(folderRoute, (err, files) => {
       else
         app.use(
           `/${routeName}`,
-          // TODO: verify token here
           require(`./${routeName}`).default
         );
     });
