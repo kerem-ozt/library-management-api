@@ -88,62 +88,121 @@ class UserService {
     }
     
     static async borrowBook(book_id, user_id, language) {
+        const transaction = await db.sequelize.transaction();
         try {
-            const book = await db.Books.findByPk(book_id);
-            if (!book) return { type: false, message: LanguageHelper(language, 'get_book_not_found') };
-
-            const user = await db.Users.findByPk(user_id);
-            if (!user) return { type: false, message: LanguageHelper(language, 'get_user_not_found') };
-
-            let existingBorrow = await db.Borrows.findOne({ where: { book_id, user_id } });
-            if (existingBorrow) return { type: false, message: LanguageHelper(language, 'borrow_book_fail') };
-
-            const borrow = await db.Borrows.create({ book_id, user_id, borrow_date: moment(), return_date: moment().add(7, 'days')});
-            return { type: true, data: borrow, message: LanguageHelper(language, 'borrow_book_success')};
-        } 
-        catch (error) {
-            return { type: false, message: error.message };
+          const [book, user] = await Promise.all([
+            db.Books.findByPk(book_id, { transaction }),
+            db.Users.findByPk(user_id, { transaction }),
+          ]);
+    
+          if (!book) {
+            await transaction.rollback();
+            return { type: false, message: LanguageHelper(language, 'get_book_not_found') };
+          }
+          if (!user) {
+            await transaction.rollback();
+            return { type: false, message: LanguageHelper(language, 'get_user_not_found') };
+          }
+    
+          const borrowed = await db.Borrows.findOne({
+            where: {
+              book_id: book_id,
+              return_date: null,
+            },
+            transaction,
+          });
+    
+          if (borrowed) {
+            await transaction.rollback();
+            return { type: false, message: LanguageHelper(language, 'borrow_book_fail') };
+          }
+    
+          const borrow = await db.Borrows.create(
+            {
+              book_id,
+              user_id,
+              borrow_date: new Date(),
+              return_date: null,
+            },
+            { transaction }
+          );
+    
+          await transaction.commit();
+          return { type: true, data: borrow, message: LanguageHelper(language, 'borrow_book_success') };
+        } catch (error) {
+          await transaction.rollback();
+          return { type: false, message: error.message };
         }
     }
 
     static async returnBook(book_id, user_id, score, language) {
         const transaction = await db.sequelize.transaction();
         try {
-            const book = await db.Books.findByPk(book_id);
-            if (!book) return { type: false, message: LanguageHelper(language, 'get_book_not_found') };
-
-            const user = await db.Users.findByPk(user_id);
-            if (!user) return { type: false, message: LanguageHelper(language, 'get_user_not_found') };
-
-            await db.Ratings.create({ book_id, user_id, rating: score, rating_date: moment() }, { transaction });
+          const [book, user] = await Promise.all([
+            db.Books.findByPk(book_id, { transaction }),
+            db.Users.findByPk(user_id, { transaction }),
+          ]);
     
-            const destroyResult = await db.Borrows.destroy({
-                where: { book_id, user_id },
-                transaction
-            });
-    
-            if (destroyResult === 0) {
-                throw new Error(LanguageHelper(language, 'get_borrow_not_found'));
-            }
-    
-            const ratings = await db.Ratings.findAll({
-                where: { book_id },
-                attributes: [[db.sequelize.fn('AVG', db.sequelize.col('rating')), 'average_rating']],
-                transaction
-            });
-    
-            const averageRating = ratings[0].get('average_rating');
-            
-            await db.Books.update({ average_rating: averageRating }, { where: { id: book_id }, transaction });
-    
-            await transaction.commit();
-    
-            return { type: true, message: LanguageHelper(language, 'return_book_success') };
-        } catch (error) {
+          if (!book) {
             await transaction.rollback();
-            return { type: false, message: error.message };
+            return { type: false, message: LanguageHelper(language, 'get_book_not_found') };
+          }
+          if (!user) {
+            await transaction.rollback();
+            return { type: false, message: LanguageHelper(language, 'get_user_not_found') };
+          }
+    
+          const borrow = await db.Borrows.findOne({
+            where: {
+              book_id,
+              user_id,
+              return_date: null,
+            },
+            transaction,
+          });
+    
+          if (!borrow) {
+            await transaction.rollback();
+            return { type: false, message: LanguageHelper(language, 'get_borrow_not_found') };
+          }
+    
+          borrow.return_date = new Date();
+          await borrow.save({ transaction });
+    
+          await db.Ratings.create(
+            {
+              book_id,
+              user_id,
+              rating: score,
+              rating_date: new Date(),
+            },
+            { transaction }
+          );
+    
+          const ratingData = await db.Ratings.findOne({
+            where: { book_id },
+            attributes: [
+              [db.Sequelize.fn('AVG', db.Sequelize.col('rating')), 'average_rating'],
+            ],
+            raw: true,
+            transaction,
+          });
+    
+          const averageRating = ratingData.average_rating;
+    
+          await db.Books.update(
+            { average_rating: averageRating },
+            { where: { id: book_id }, transaction }
+          );
+    
+          await transaction.commit();
+    
+          return { type: true, message: LanguageHelper(language, 'return_book_success') };
+        } catch (error) {
+          await transaction.rollback();
+          return { type: false, message: error.message };
         }
-    } 
+    }
 
 }
 
