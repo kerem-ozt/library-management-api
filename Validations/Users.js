@@ -35,7 +35,7 @@ class UserValidation {
     const Schema = Joi.object({
       book_id: Joi.number().required(),
       user_id: Joi.number().required(),
-      score: Joi.number().required()
+      score: Joi.number().min(0).max(5).required()
     });
 
     const { error } = Schema.validate({ book_id, user_id, score });
