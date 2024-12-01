@@ -15,19 +15,16 @@ module.exports = {
     await queryInterface.bulkInsert('Books', [
       {
         name: 'Crime and Punishment',
-        average_rating: 4.5,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
         name: 'White Fang',
-        average_rating: 4.4,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
         name: '1984',
-        average_rating: 4.2,
         createdAt: new Date(),
         updatedAt: new Date()
       }

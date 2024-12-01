@@ -12,15 +12,8 @@ fs.readdir(folderRoute, (err, files) => {
   } else {
     files.forEach(file => {
       if (file === basename) return;
-      const routeName = path.parse(file).name.toLowerCase();
-      if (routeName === 'auth')
-        app.use(`/${routeName}`, require(`./${routeName}`).default);
-      else
-        app.use(
-          `/${routeName}`,
-          // TODO: verify token here
-          require(`./${routeName}`).default
-        );
+      const routeName = path.parse(file).name;
+      app.use(`/${routeName.toLowerCase()}`, require(`./${routeName}`).default);
     });
   }
 });
